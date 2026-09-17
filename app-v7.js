@@ -1,96 +1,154 @@
-const $=id=>document.getElementById(id);
-let tutor='Raka', topic='Daily Conversation', slow=false, pc=null, dc=null, micStream=null, audioEl=null, analyser=null, meterTimer=null, connected=false;
-let userTranscript=[], tutorTranscript=[];
-const starters={
- 'Daily Conversation':"Hi! I'm {name}. Tell me about your day at school.",
- 'Forestry English':"Hello! I'm {name}. Let's talk about forestry. What forest activity have you done recently?",
- 'PKL / Field Practice':"Hi! I'm {name}. Tell me about your PKL or field practice.",
- 'Job Interview':"Good morning. I'm {name}, your interview practice partner. Why are you interested in forestry?"
+const $ = id => document.getElementById(id);
+let tutor = 'Raka', topic = 'Daily Conversation', slow = false;
+let connected = false, recognition = null, recognizing = false, voiceAnim = null, userTranscript = [], turn = 0;
+let demoInput, demoSend;
+
+const starters = {
+  'Daily Conversation': "Hi! I'm {name}. Tell me about your day at school.",
+  'Forestry English': "Hello! I'm {name}. Let's talk about forestry. What forest activity have you done recently?",
+  'PKL / Field Practice': "Hi! I'm {name}. Tell me about your PKL or field practice.",
+  'Job Interview': "Good morning. I'm {name}, your interview practice partner. Why are you interested in forestry?"
 };
-function addBubble(text,who='ai'){const d=document.createElement('div');d.className='bubble '+who;d.innerHTML='<b>'+ (who==='ai'?tutor+' 🇬🇧':'YOU')+'</b><p>'+escapeHtml(text)+'</p>';$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight}
-function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-function setTutor(name){tutor=name;$('tutorName').textContent=name;$('avatarFace').classList.toggle('raka',name==='Raka');$('avatarFace').classList.toggle('rara',name==='Rara');$('avatarFace').setAttribute('aria-label',name+' animated tutor');document.querySelectorAll('.char').forEach(x=>x.classList.toggle('active',x.dataset.tutor===name));if(!connected){$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',name));}}
-function setState(s){$('state').textContent=s; const w=$('avatarWrap'); w.classList.toggle('listening', /^Listening/i.test(s)); w.classList.toggle('speaking', /speaking/i.test(s));}
-function setupOutputMeter(stream){
-  try{
-    if(audioCtx) audioCtx.close();
-    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-    const src=audioCtx.createMediaStreamSource(stream); outputAnalyser=audioCtx.createAnalyser(); outputAnalyser.fftSize=256; src.connect(outputAnalyser);
-    const data=new Uint8Array(outputAnalyser.frequencyBinCount);
-    const bars=[...document.querySelectorAll('.voice-bars i')];
-    const tick=()=>{
-      if(!outputAnalyser)return; outputAnalyser.getByteFrequencyData(data);
-      let sum=0; for(const v of data) sum+=v; const level=Math.min(1,(sum/data.length)/90);
-      $('avatarWrap').style.setProperty('--voice-level', level.toFixed(3));
-      bars.forEach((b,i)=>b.style.height=(7+level*(18+Math.sin(Date.now()/90+i)*7))+'px');
-      voiceAnim=requestAnimationFrame(tick);
-    }; tick();
-  }catch(err){console.warn('Audio visualiser unavailable',err)}
+
+const replies = {
+  'Daily Conversation': [
+    'That sounds interesting. What did you enjoy most at school today?',
+    'Nice! Tell me one thing you learned today.',
+    'Great. What are you planning to do after school?'
+  ],
+  'Forestry English': [
+    'Good answer. What tools or equipment did you use in the field?',
+    'Interesting. How did you help protect the forest during the activity?',
+    'Excellent. Can you describe one forestry skill you want to improve?'
+  ],
+  'PKL / Field Practice': [
+    'Good. What was your main responsibility during PKL?',
+    'That is useful experience. What did you learn from your supervisor?',
+    'Well done. Which field activity was the most challenging for you?'
+  ],
+  'Job Interview': [
+    'Thank you. Can you describe one strength that would help you in a forestry job?',
+    'Good. Tell me about a time you worked successfully in a team.',
+    'Excellent. Why should an employer choose you for this position?'
+  ]
+};
+
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function addBubble(text,who='ai'){
+  const d=document.createElement('div'); d.className='bubble '+who;
+  d.innerHTML='<b>'+ (who==='ai'?tutor+' 🇬🇧':'YOU')+'</b><p>'+escapeHtml(text)+'</p>';
+  $('chat').appendChild(d); $('chat').scrollTop=$('chat').scrollHeight;
 }
-async function createRealtimeCall(sdpOffer){
- const r=await fetch('/api/realtime/call',{
-  method:'POST',
-  headers:{
-   'Content-Type':'text/plain;charset=UTF-8',
-   'X-Rimbara-Tutor':tutor,
-   'X-Rimbara-Topic':topic,
-   'X-Rimbara-Slow':slow?'1':'0'
-  },
-  body:sdpOffer
- });
- const text=await r.text();
- if(!r.ok) throw new Error(text || 'Could not create realtime call');
- return text;
+function setState(s){
+  $('state').textContent=s;
+  $('avatarWrap').classList.toggle('listening',/^Listening/i.test(s));
+  $('avatarWrap').classList.toggle('speaking',/speaking/i.test(s));
 }
-async function connect(){
- if(connected)return;
- try{
-  resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
-  micStream=await navigator.mediaDevices.getUserMedia({audio:true});
-  pc=new RTCPeerConnection(); audioEl=new Audio(); audioEl.autoplay=true; audioEl.playsInline=true;
-  pc.ontrack=e=>{audioEl.srcObject=e.streams[0]; $('avatarWrap').classList.add('speaking'); setupOutputMeter(e.streams[0]);};
-  pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(pc.connectionState)&&connected) stop();};
-  micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
-  dc=pc.createDataChannel('oai-events');
-  dc.onopen=()=>{dc.send(JSON.stringify({type:'response.create'}));setState('Live — speak naturally');$('stop').disabled=false;connected=true;startMeter();addBubble('Live voice conversation started. I\'m listening.','ai');};
-  dc.onmessage=e=>handleRealtimeEvent(e.data);
-  const offer=await pc.createOffer();await pc.setLocalDescription(offer);
-  const sdp=await createRealtimeCall(offer.sdp);
-  await pc.setRemoteDescription({type:'answer',sdp});
- }catch(e){console.error(e);setState('Could not start live voice');$('connect').disabled=false;if(micStream)micStream.getTracks().forEach(t=>t.stop());alert('RIMBARA AI V8.3: '+e.message+'\n\nPastikan server berjalan, API key sudah diatur, dan browser mengizinkan mikrofon.');}
+function setTutor(name){
+  tutor=name;
+  $('tutorName').textContent=name;
+  $('avatarFace').classList.toggle('raka',name==='Raka');
+  $('avatarFace').classList.toggle('rara',name==='Rara');
+  $('avatarFace').setAttribute('aria-label',name+' animated tutor');
+  document.querySelectorAll('.char').forEach(x=>x.classList.toggle('active',x.dataset.tutor===name));
+  if(!connected){ $('chat').innerHTML=''; addBubble(starters[topic].replace('{name}',name)); speak(starters[topic].replace('{name}',name)); }
 }
-function handleRealtimeEvent(raw){
- try{
-  const ev=JSON.parse(raw);
-  if(ev.type==='input_audio_buffer.speech_started'){setState('Listening…');$('avatarWrap').classList.remove('speaking');}
-  if(ev.type==='input_audio_buffer.speech_stopped'){setState(tutor+' is thinking…');}
-  if(ev.type==='response.audio.delta'){setState(tutor+' is speaking…');$('avatarWrap').classList.add('speaking');}
-  if(ev.type==='response.audio_transcript.delta'){if(ev.delta) appendTutorTranscript(ev.delta);}
-  if(ev.type==='response.audio_transcript.done'){setState('Live — your turn');$('avatarWrap').classList.remove('speaking');}
-  if(ev.type==='conversation.item.input_audio_transcription.completed' && ev.transcript){appendUserTranscript(ev.transcript);}
-  if(ev.type==='response.done'){setState('Live — your turn');$('avatarWrap').classList.remove('speaking');}
-  if(ev.type==='error'){console.warn(ev.error);setState('Realtime error — check server/session');}
- }catch{}
+function pickVoice(){
+  const voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  const english = voices.filter(v=>/^en(-|_)/i.test(v.lang));
+  const preferredMale=/male|daniel|george|guy|ryan|arthur|oliver/i;
+  const preferredFemale=/female|samantha|victoria|kate|hazel|susan|sarah/i;
+  let list=tutor==='Rara' ? english.filter(v=>preferredFemale.test(v.name)) : english.filter(v=>preferredMale.test(v.name));
+  return (list[0] || english.find(v=>/en-GB|en_GB/i.test(v.lang)) || english[0] || voices[0]);
 }
-function appendUserTranscript(text){userTranscript.push(String(text));renderTranscript();}
-function appendTutorTranscript(text){if(!tutorTranscript.length)tutorTranscript.push('');tutorTranscript[tutorTranscript.length-1]+=String(text);}
-function renderTranscript(){const box=$('transcriptBox');if(!userTranscript.length){box.textContent='No learner transcript yet.';return}box.innerHTML=userTranscript.map((t,i)=>`<div><b>${i+1}.</b> ${escapeHtml(t)}</div>`).join('');}
-function resetFeedback(){userTranscript=[];tutorTranscript=[];renderTranscript();['scorePron','scoreFluency','scoreGrammar','scoreVocab'].forEach(id=>$(id).textContent='—');$('feedbackTip').textContent='Finish a live session, then analyse your speaking.'; if($('feedbackBtn')) $('feedbackBtn').disabled=true;$('feedbackBtn').disabled=true;}
-async function analyseFeedback(){
- if(!userTranscript.length){$('feedbackTip').textContent='Belum ada transkrip siswa. Coba bicara beberapa kalimat terlebih dahulu.';return;}
- const btn=$('feedbackBtn');btn.disabled=true;btn.textContent='⏳ Analysing…';$('feedbackTip').textContent='RIMBARA sedang menganalisis pronunciation, fluency, grammar, dan vocabulary…';
- try{const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tutor,topic,transcript:userTranscript.join(' ')})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Feedback failed');
-  $('scorePron').textContent=d.scores.pronunciation+'/10';$('scoreFluency').textContent=d.scores.fluency+'/10';$('scoreGrammar').textContent=d.scores.grammar+'/10';$('scoreVocab').textContent=d.scores.vocabulary+'/10';
-  $('feedbackTip').innerHTML='<b>'+escapeHtml(d.summary)+'</b><br>'+escapeHtml(d.next_step||'Keep practising and try to speak a little more each session.');
- }catch(e){$('feedbackTip').textContent='Feedback belum bisa diproses: '+e.message;}finally{btn.disabled=false;btn.textContent='✨ Analyse My Speaking';}
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang='en-GB';
+  const v=pickVoice(); if(v) u.voice=v;
+  u.rate=slow?0.72:0.92; u.pitch=tutor==='Rara'?1.08:0.92; u.volume=1;
+  u.onstart=()=>{setState(tutor+' is speaking…');$('avatarWrap').classList.add('speaking');startAvatarVoice();};
+  u.onend=()=>{stopAvatarVoice(); if(connected){setState('Listening…'); beginRecognition();} else setState('Ready');};
+  u.onerror=()=>{stopAvatarVoice(); if(connected)setState('Listening…');};
+  speechSynthesis.speak(u);
 }
-function stop(){const wasConnected=connected;connected=false;stopMeter(); if(voiceAnim) cancelAnimationFrame(voiceAnim); voiceAnim=null; if(audioCtx){audioCtx.close().catch(()=>{});audioCtx=null;} $('avatarWrap').style.setProperty('--voice-level','0');if(dc)dc.close();if(pc)pc.close();if(micStream)micStream.getTracks().forEach(t=>t.stop());pc=null;dc=null;micStream=null;$('connect').disabled=false;$('stop').disabled=true;$('avatarWrap').classList.remove('speaking','listening');setState('Ready');if(wasConnected && userTranscript.length){$('feedbackBtn').disabled=false;$('feedbackTip').textContent='Session selesai. Klik “Analyse My Speaking” untuk melihat feedback.';}}
-function startMeter(){if(!micStream)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const ctx=new C();analyser=ctx.createAnalyser();const src=ctx.createMediaStreamSource(micStream);analyser.fftSize=256;src.connect(analyser);const data=new Uint8Array(analyser.frequencyBinCount);meterTimer=setInterval(()=>{analyser.getByteTimeDomainData(data);let sum=0;for(const x of data){const v=(x-128)/128;sum+=v*v}const rms=Math.sqrt(sum/data.length);$('meterText').textContent=rms>.025?'Microphone: speaking':'Microphone: ready';document.querySelector('.meter span').style.width=Math.min(100,Math.round(rms*500))+'%';},100)}
-function stopMeter(){if(meterTimer)clearInterval(meterTimer);meterTimer=null;$('meterText').textContent='Microphone is off';document.querySelector('.meter span').style.width='0%'}
+function startAvatarVoice(){
+  if(voiceAnim) cancelAnimationFrame(voiceAnim);
+  const bars=[...document.querySelectorAll('.voice-bars i')]; let t=0;
+  const loop=()=>{t+=0.22; const level=.35+.35*Math.abs(Math.sin(t)); $('avatarWrap').style.setProperty('--voice-level',level.toFixed(2)); bars.forEach((b,i)=>b.style.height=(7+level*(18+Math.sin(t+i)*5))+'px'); voiceAnim=requestAnimationFrame(loop);}; loop();
+}
+function stopAvatarVoice(){if(voiceAnim)cancelAnimationFrame(voiceAnim);voiceAnim=null;$('avatarWrap').style.setProperty('--voice-level','0');$('avatarWrap').classList.remove('speaking');}
+function installDemoInput(){
+  if(demoInput) return;
+  const wrap=document.createElement('div'); wrap.className='demo-input-wrap'; wrap.innerHTML='<input id="demoInput" type="text" placeholder="Ketik jawaban Bahasa Inggris di sini…" autocomplete="off"><button id="demoSend">Send ↵</button><small id="demoSupport">Demo gratis • voice input otomatis jika browser mendukung</small>';
+  const controls=document.querySelector('.live-controls'); controls.insertAdjacentElement('afterend',wrap);
+  demoInput=$('demoInput'); demoSend=$('demoSend');
+  demoSend.onclick=sendTyped; demoInput.onkeydown=e=>{if(e.key==='Enter')sendTyped();};
+}
+function sendTyped(){const text=demoInput?.value.trim(); if(!text)return; processUserText(text); demoInput.value='';}
+function setupRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){$('demoSupport').textContent='Browser ini tidak mendukung voice input otomatis. Gunakan kotak teks untuk demo.';return null;}
+  const r=new SR(); r.lang='en-GB'; r.interimResults=false; r.continuous=false; r.maxAlternatives=1;
+  r.onstart=()=>{recognizing=true;setState('Listening…');};
+  r.onresult=e=>{const text=e.results?.[0]?.[0]?.transcript||''; if(text)processUserText(text);};
+  r.onerror=()=>{recognizing=false;setState('Listening…');};
+  r.onend=()=>{recognizing=false; if(connected && !speechSynthesis.speaking)setState('Listening…');};
+  return r;
+}
+function beginRecognition(){
+  if(!connected)return;
+  if(!recognition) recognition=setupRecognition();
+  if(recognition && !recognizing){try{recognition.start();}catch(e){}}
+  if(demoInput) demoInput.focus();
+}
+function processUserText(text){
+  if(!connected)return;
+  if(recognition&&recognizing){try{recognition.stop();}catch(e){}}
+  userTranscript.push(text); renderTranscript(); addBubble(text,'user');
+  setState(tutor+' is thinking…');
+  setTimeout(()=>{
+    const pool=replies[topic]||replies['Daily Conversation'];
+    const reply=pool[turn++ % pool.length]; addBubble(reply,'ai'); speak(reply);
+  },550);
+}
+function startDemo(){
+  if(connected)return;
+  connected=true; turn=0; userTranscript=[]; renderTranscript();
+  resetScores(); installDemoInput();
+  $('connect').disabled=true; $('stop').disabled=false;
+  setState('Starting free demo…');
+  const greeting=starters[topic].replace('{name}',tutor); $('chat').innerHTML=''; addBubble(greeting,'ai'); speak(greeting);
+  $('demoInput').style.display='';
+}
+function stop(){
+  connected=false; if(recognition&&recognizing){try{recognition.stop();}catch(e){}} recognition=null; recognizing=false;
+  if('speechSynthesis' in window) speechSynthesis.cancel(); stopAvatarVoice();
+  $('connect').disabled=false; $('stop').disabled=true; setState('Ready');
+  $('meterText').textContent='Demo mode — microphone optional'; document.querySelector('.meter span').style.width='0%';
+  if(userTranscript.length){$('feedbackBtn').disabled=false;$('feedbackTip').textContent='Demo session selesai. Klik “Analyse My Speaking”.';}
+}
+function renderTranscript(){
+  const box=$('transcriptBox');
+  if(!userTranscript.length){box.textContent='No learner transcript yet.';return;}
+  box.innerHTML=userTranscript.map((t,i)=>`<div><b>${i+1}.</b> ${escapeHtml(t)}</div>`).join('');
+}
+function resetScores(){['scorePron','scoreFluency','scoreGrammar','scoreVocab'].forEach(id=>$(id).textContent='—');$('feedbackTip').textContent='Demo feedback lokal — tanpa API.';$('feedbackBtn').disabled=true;}
+function analyseFeedback(){
+  if(!userTranscript.length){$('feedbackTip').textContent='Belum ada jawaban siswa.';return;}
+  const words=userTranscript.join(' ').trim().split(/\s+/).filter(Boolean).length;
+  const long=Math.min(10,Math.max(4,Math.round(4+words/8)));
+  const grammar=/\b(i am|i'm|i like|i want|i learned|i worked|i was|i have|my)\b/i.test(userTranscript.join(' '))?8:6;
+  $('scorePron').textContent=Math.min(10,long)+'/10';$('scoreFluency').textContent=Math.min(10,Math.max(5,long-1))+'/10';$('scoreGrammar').textContent=grammar+'/10';$('scoreVocab').textContent=Math.min(10,Math.max(5,long))+'/10';
+  $('feedbackTip').innerHTML='<b>Nice practice.</b><br>Try speaking in complete sentences and add one specific detail to make your answer clearer.';
+}
 
 document.querySelectorAll('.char').forEach(b=>b.onclick=()=>setTutor(b.dataset.tutor));
 $('topic').onchange=e=>{topic=e.target.value;if(!connected){$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',tutor));}};
-$('slow').onclick=()=>{slow=!slow;$('slow').textContent='🐢 Slow: '+(slow?'ON':'OFF');if(connected){alert('Slow mode will apply when the next live session starts.');}};
-$('connect').onclick=connect;$('stop').onclick=stop;$('feedbackBtn').onclick=analyseFeedback;
-$('reset').onclick=()=>{stop();resetFeedback();$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',tutor));};
+$('slow').onclick=()=>{slow=!slow;$('slow').textContent='🐢 Slow: '+(slow?'ON':'OFF');};
+$('connect').onclick=startDemo; $('stop').onclick=stop; $('feedbackBtn').onclick=analyseFeedback;
+$('reset').onclick=()=>{stop();resetScores();$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',tutor));};
 window.addEventListener('beforeunload',stop);
+if('speechSynthesis' in window) speechSynthesis.onvoiceschanged=()=>{};
+installDemoInput();
+$('meterText').textContent='Demo mode — microphone optional';
