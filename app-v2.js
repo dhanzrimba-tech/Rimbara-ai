@@ -15,7 +15,7 @@ const replies={
  'Pronunciation Practice':`Excellent effort. Focus on the rhythm: sustainable • forest • management.`
 };
 const $=id=>document.getElementById(id);
-function setState(mode,label){state.mode=mode;$('state').textContent=label;$('coachWrap').className='coach-photo-wrap '+mode;const photo=expr[state.tutor][mode]||expr[state.tutor].happy;$('coachPhoto').src=photo;$('dot').classList.toggle('active',mode!=='ready');$('wave').classList.toggle('active',mode==='speaking');}
+function setState(mode,label){state.mode=mode;$('state').textContent=label;$('characterBadge').textContent={happy:'READY • Siap belajar',speaking:'SPEAKING • Sedang berbicara',listening:'LISTENING • Mendengarkan',thinking:'THINKING • Sedang berpikir',praise:'APPLAUSE • Memberi apresiasi'}[mode]||'READY • Siap belajar';$('coachWrap').className='coach-photo-wrap '+mode;const photo=expr[state.tutor][mode]||expr[state.tutor].happy;$('coachPhoto').src=photo;$('dot').classList.toggle('active',mode!=='ready');$('wave').classList.toggle('active',mode==='speaking');}
 function updateTutor(){
  $('coachName').textContent=state.tutor;$('msgTutorName').textContent=`${state.tutor} 🇬🇧`;$('promptText').textContent=prompts[state.topic].replace('{name}',state.tutor);
  setState('happy','Ready to practice');
