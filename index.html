@@ -88,8 +88,24 @@
               <option>Pronunciation Practice</option>
             </select>
           </div>
-          <div class="conversation" id="conversation">
-            <div class="message tutor"><b id="msgTutorName">Raka 🇬🇧</b><p id="promptText">Hi! I'm Raka. Tell me about your day at school.</p></div>
+          <div class="conversation-layout">
+            <div class="conversation-tutor-rail" aria-label="Tutor aktif">
+              <div class="mini-tutor-card">
+                <div class="mini-tutor-photo"><img id="stickyTutorPhoto" src="assets/avatars/raka-1.jpg" alt="Raka"></div>
+                <div class="mini-tutor-copy">
+                  <strong id="stickyTutorName">Raka</strong>
+                  <span id="stickyTutorState">Ready</span>
+                </div>
+                <div class="mini-tutor-wave" id="stickyTutorWave"><i></i><i></i><i></i></div>
+              </div>
+            </div>
+            <div class="conversation" id="conversation">
+              <div class="message tutor">
+                <b id="msgTutorName">Raka 🇬🇧</b>
+                <p class="english" id="promptText">Hi! I'm Raka. Tell me about your day at school.</p>
+                <p class="translation"><span>🇮🇩 Arti:</span> <span id="promptTranslation">Hai! Saya Raka. Ceritakan tentang kegiatanmu di sekolah hari ini.</span></p>
+              </div>
+            </div>
           </div>
           <div class="listen-bar"><span class="dot" id="dot"></span><span id="listenLabel">Tutor is ready</span><span class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i></span></div>
           <div class="practice-controls">
@@ -97,6 +113,10 @@
             <button class="secondary big" id="hearBtn">🔊 Hear Tutor</button>
           </div>
           <div class="text-fallback"><input id="studentText" placeholder="Ketik jawaban di sini untuk demo…"><button id="sendText">Kirim</button></div>
+          <div class="translation-toggle-row">
+            <label class="switch-label"><input type="checkbox" id="translationToggle" checked> <span>🇮🇩 Tampilkan arti Bahasa Indonesia</span></label>
+            <span class="conversation-hint">Obrolan berjalan terus • tutor tetap mendampingi</span>
+          </div>
           <div class="feedback" id="feedback"><b>Demo feedback:</b> Coba gunakan kalimat lengkap dan santai. 🌱</div>
         </section>
       </div>
