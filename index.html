@@ -1,27 +1,129 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RIMBARA AI V8.3 — Demo Voice Tutor</title><link rel="icon" href="assets/logo-sekolah.png"><link rel="stylesheet" href="style-v7.css"></head><body>
-<header class="top"><div class="brand"><img src="assets/logo-sekolah.png"><div><strong>RIMBARA AI</strong><span>Grow Your English Naturally.</span></div></div><div class="badge">V8.3 • DEMO MODE — NO API BILLING</div></header>
-<main>
-<section class="hero"><div><p class="eyebrow">SMK KEHUTANAN RIMBA BAHARI SUMEDANG</p><h1>Speak English with <span>Raka</span> or <span>Rara</span>.</h1><p class="sub">Demo voice practice untuk school, forestry, PKL dan job interviews — tanpa billing API.</p></div><div class="secure">🆓 Demo mode — tidak memakai OpenAI API</div></section>
-<section class="grid">
-<aside class="panel tutor-panel"><div class="avatar-wrap" id="avatarWrap">
-  <img id="avatarImg" src="assets/logo-sekolah.png" alt="School logo">
-  <div class="talking-avatar raka" id="avatarFace" aria-label="Raka animated tutor">
-    <div class="avatar-hair"></div><div class="avatar-head">
-      <div class="avatar-ear left"></div><div class="avatar-ear right"></div>
-      <div class="avatar-eye left"><i></i></div><div class="avatar-eye right"><i></i></div>
-      <div class="avatar-brow left"></div><div class="avatar-brow right"></div>
-      <div class="avatar-nose"></div><div class="avatar-mouth"><span></span></div>
-      <div class="avatar-neck"></div><div class="avatar-uniform"><b></b><i></i></div>
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RIMBARA AI — English Speaking Tutor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo-sekolah.png" alt="Logo SMK Kehutanan Rimba Bahari" class="logo">
+      <div>
+        <div class="eyebrow">SMK KEHUTANAN RIMBA BAHARI SUMEDANG</div>
+        <h1>RIMBARA <span>AI</span></h1>
+        <div class="subbrand">AI English Speaking Tutor</div>
+      </div>
     </div>
-  </div>
-  <div class="sound-ring"></div><div class="listen-pulse"></div><div class="voice-bars" id="voiceBars"><i></i><i></i><i></i><i></i><i></i></div>
-</div><h2 id="tutorName">Raka</h2><p id="tutorRole">British English Speaking Tutor</p><div class="chars"><button class="char active" data-tutor="Raka">👦 Raka</button><button class="char" data-tutor="Rara">👧 Rara</button></div><div class="state" id="state">Ready</div></aside>
-<section class="panel conversation"><div class="toolbar"><label>Topic<select id="topic"><option>Daily Conversation</option><option>Forestry English</option><option>PKL / Field Practice</option><option>Job Interview</option></select></label><button id="slow">🐢 Slow: OFF</button><button id="reset">↻ Reset</button></div><div class="chat" id="chat"><div class="bubble ai"><b>Raka 🇬🇧</b><p>Hi! I'm Raka. Tell me about your day at school.</p></div></div><div class="live-controls"><button id="connect" class="primary">🎙️ Start Live Conversation</button><button id="stop" disabled>⏹ Stop</button></div><div class="meter"><span></span><small id="meterText">Microphone is off</small></div><p class="hint">Demo gratis: suara tutor memakai voice bawaan browser. Jika browser tidak mendukung voice input, gunakan kotak teks yang muncul.</p></section>
-</section>
-<section class="features"><div>🇬🇧 <b>British English</b><small>Pronunciation & rhythm</small></div><div>🗣️ <b>Voice-to-Voice</b><small>Natural conversation</small></div><div>🌲 <b>Forestry English</b><small>Relevant to SMK Kehutanan</small></div><div>📈 <b>Learning Loop</b><small>Listen → Speak → Improve</small></div></section>
-<section class="feedback panel">
-<div class="feedback-head"><div><h2>Speaking feedback</h2><p class="muted">Your conversation is turned into a practical mini-lesson.</p></div><button id="feedbackBtn" class="analyse" disabled>✨ Analyse My Speaking</button></div>
-<div class="transcript"><h3>📝 Your transcript</h3><div class="transcript-box" id="transcriptBox">No learner transcript yet.</div></div>
-<div class="scores"><div><b>Pronunciation</b><strong id="scorePron">—</strong></div><div><b>Fluency</b><strong id="scoreFluency">—</strong></div><div><b>Grammar</b><strong id="scoreGrammar">—</strong></div><div><b>Vocabulary</b><strong id="scoreVocab">—</strong></div></div>
-<p id="feedbackTip">Demo feedback lokal — tanpa API.</p></section>
-</main><footer>RIMBARA AI • SMK Kehutanan Rimba Bahari Sumedang</footer><script src="app-v7.js"></script></body></html>
+    <div class="tagline"><b>Grow Your English Naturally.</b><br><span>Dari Rimba • Untuk Masa Depan Dunia</span></div>
+  </header>
+
+  <main>
+    <section class="hero-grid">
+      <div class="hero-copy">
+        <span class="pill">🌿 DEMO MODE • GRATIS</span>
+        <h2>Speak English with <span>Raka</span> or <span>Rara</span>.</h2>
+        <p>Latihan berbicara dengan tutor AI bergaya sekolah kehutanan. Dengarkan, tirukan, bicara, lalu tingkatkan kepercayaan diri.</p>
+        <div class="hero-actions">
+          <button class="primary" id="startPractice">🎙️ Mulai Latihan</button>
+          <button class="secondary" id="scrollFeatures">🌲 Lihat Fitur</button>
+        </div>
+        <div class="four-values">
+          <div>🌲 <b>Learn</b><span>Pelajari pola kalimat</span></div>
+          <div>🎤 <b>Practice</b><span>Latihan bicara</span></div>
+          <div>📈 <b>Improve</b><span>Dapatkan feedback</span></div>
+          <div>🌱 <b>Grow</b><span>Tumbuh percaya diri</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="nature-ring"></div>
+        <div class="hero-character hero-raka"><img src="assets/avatars/raka-2.jpg" alt="Raka"></div>
+        <div class="hero-character hero-rara"><img src="assets/avatars/rara-2.jpg" alt="Rara"></div>
+        <div class="speech-bubble left">Hi!<br><small>Let's learn together.</small></div>
+        <div class="speech-bubble right">Hello!<br><small>Speak with confidence.</small></div>
+      </div>
+    </section>
+
+    <section class="practice-panel" id="practice">
+      <div class="panel-head">
+        <div>
+          <div class="section-kicker">VOICE PRACTICE ROOM</div>
+          <h3>Talk like a real conversation</h3>
+        </div>
+        <button class="ghost" id="slowToggle">🐢 Slow: OFF</button>
+      </div>
+
+      <div class="practice-grid">
+        <aside class="coach-card">
+          <div class="coach-photo-wrap" id="coachWrap"><img id="coachPhoto" src="assets/avatars/raka-1.jpg" alt="Tutor"></div>
+          <div class="coach-name" id="coachName">Raka</div>
+          <div class="coach-role">British English Speaking Tutor</div>
+          <div class="coach-buttons">
+            <button class="coach-select active" data-tutor="Raka">👦 Raka</button>
+            <button class="coach-select" data-tutor="Rara">👧 Rara</button>
+          </div>
+          <div class="state" id="state">Ready to practice</div>
+        </aside>
+
+        <section class="conversation-card">
+          <div class="topic-row">
+            <label>Topic</label>
+            <select id="topic">
+              <option>Daily Conversation</option>
+              <option>Forestry English</option>
+              <option>PKL / Field Practice</option>
+              <option>Job Interview</option>
+              <option>Pronunciation Practice</option>
+            </select>
+          </div>
+          <div class="conversation" id="conversation">
+            <div class="message tutor"><b id="msgTutorName">Raka 🇬🇧</b><p id="promptText">Hi! I'm Raka. Tell me about your day at school.</p></div>
+          </div>
+          <div class="listen-bar"><span class="dot" id="dot"></span><span id="listenLabel">Tutor is ready</span><span class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i></span></div>
+          <div class="practice-controls">
+            <button class="primary big" id="speakBtn">🎙️ Speak</button>
+            <button class="secondary big" id="hearBtn">🔊 Hear Tutor</button>
+          </div>
+          <div class="text-fallback"><input id="studentText" placeholder="Ketik jawaban di sini untuk demo…"><button id="sendText">Kirim</button></div>
+          <div class="feedback" id="feedback"><b>Demo feedback:</b> Coba gunakan kalimat lengkap dan santai. 🌱</div>
+        </section>
+      </div>
+    </section>
+
+    <section class="features" id="features">
+      <div class="feature"><div class="icon">🇬🇧</div><b>British English</b><span>Pronunciation & rhythm</span></div>
+      <div class="feature"><div class="icon">🎙️</div><b>Voice Conversation</b><span>Talk naturally</span></div>
+      <div class="feature"><div class="icon">🌲</div><b>Forestry English</b><span>Relevant to SMK Kehutanan</span></div>
+      <div class="feature"><div class="icon">📊</div><b>Speaking Score</b><span>Fluency, vocabulary, grammar</span></div>
+      <div class="feature"><div class="icon">🎓</div><b>Learn Anywhere</b><span>Phone or laptop</span></div>
+      <div class="feature"><div class="icon">🤝</div><b>Raka & Rara</b><span>Your AI practice friends</span></div>
+    </section>
+
+    <section class="expression-showcase">
+      <div class="section-kicker">ANIMATED EXPRESSIONS</div>
+      <h3>Ekspresi tutor berubah sesuai percakapan</h3>
+      <p class="muted">Di demo ini ekspresi berganti otomatis saat <b>mendengarkan</b>, <b>berbicara</b>, <b>berpikir</b>, dan <b>memberi apresiasi</b>.</p>
+      <div class="expr-grid">
+        <div class="expr-card"><span>😊 Senang</span><img src="assets/avatars/raka-1.jpg"></div>
+        <div class="expr-card"><span>🗣️ Berbicara</span><img src="assets/avatars/raka-2.jpg"></div>
+        <div class="expr-card"><span>👂 Mendengarkan</span><img src="assets/avatars/raka-3.jpg"></div>
+        <div class="expr-card"><span>🤔 Berpikir</span><img src="assets/avatars/raka-4.jpg"></div>
+        <div class="expr-card"><span>👍 Apresiasi</span><img src="assets/avatars/raka-5.jpg"></div>
+      </div>
+      <div class="expr-grid rara-row">
+        <div class="expr-card"><span>😊 Senang</span><img src="assets/avatars/rara-1.jpg"></div>
+        <div class="expr-card"><span>🗣️ Berbicara</span><img src="assets/avatars/rara-2.jpg"></div>
+        <div class="expr-card"><span>👂 Mendengarkan</span><img src="assets/avatars/rara-3.jpg"></div>
+        <div class="expr-card"><span>🤔 Berpikir</span><img src="assets/avatars/rara-4.jpg"></div>
+        <div class="expr-card"><span>👍 Apresiasi</span><img src="assets/avatars/rara-5.jpg"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>RIMBARA AI • Demo gratis untuk SMK Kehutanan Rimba Bahari Sumedang</footer>
+</div>
+<script src="app-v2.js"></script>
+</body>
+</html>
