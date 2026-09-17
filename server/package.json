@@ -1,0 +1,12 @@
+{
+  "name": "rimbara-ai-server",
+  "private": true,
+  "type": "module",
+  "scripts": {"start":"node server.js"},
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "openai": "^6.0.0"
+  }
+}

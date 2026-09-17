@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RIMBARA AI V8.1 — Voice Tutor</title><link rel="icon" href="assets/logo-sekolah.png"><link rel="stylesheet" href="style-v7.css"></head><body>
+<header class="top"><div class="brand"><img src="assets/logo-sekolah.png"><div><strong>RIMBARA AI</strong><span>Grow Your English Naturally.</span></div></div><div class="badge">V8.1 • LIVE VOICE + AVATAR</div></header>
+<main>
+<section class="hero"><div><p class="eyebrow">SMK KEHUTANAN RIMBA BAHARI SUMEDANG</p><h1>Speak English with <span>Raka</span> or <span>Rara</span>.</h1><p class="sub">Real-time voice practice for school, forestry, PKL and job interviews.</p></div><div class="secure">🔒 Your permanent API key stays on the server</div></section>
+<section class="grid">
+<aside class="panel tutor-panel"><div class="avatar-wrap" id="avatarWrap">
+  <img id="avatarImg" src="assets/logo-sekolah.png" alt="School logo">
+  <div class="talking-avatar raka" id="avatarFace" aria-label="Raka animated tutor">
+    <div class="avatar-hair"></div><div class="avatar-head">
+      <div class="avatar-ear left"></div><div class="avatar-ear right"></div>
+      <div class="avatar-eye left"><i></i></div><div class="avatar-eye right"><i></i></div>
+      <div class="avatar-brow left"></div><div class="avatar-brow right"></div>
+      <div class="avatar-nose"></div><div class="avatar-mouth"><span></span></div>
+      <div class="avatar-neck"></div><div class="avatar-uniform"><b></b><i></i></div>
+    </div>
+  </div>
+  <div class="sound-ring"></div><div class="listen-pulse"></div><div class="voice-bars" id="voiceBars"><i></i><i></i><i></i><i></i><i></i></div>
+</div><h2 id="tutorName">Raka</h2><p id="tutorRole">British English Speaking Tutor</p><div class="chars"><button class="char active" data-tutor="Raka">👦 Raka</button><button class="char" data-tutor="Rara">👧 Rara</button></div><div class="state" id="state">Ready</div></aside>
+<section class="panel conversation"><div class="toolbar"><label>Topic<select id="topic"><option>Daily Conversation</option><option>Forestry English</option><option>PKL / Field Practice</option><option>Job Interview</option></select></label><button id="slow">🐢 Slow: OFF</button><button id="reset">↻ Reset</button></div><div class="chat" id="chat"><div class="bubble ai"><b>Raka 🇬🇧</b><p>Hi! I'm Raka. Tell me about your day at school.</p></div></div><div class="live-controls"><button id="connect" class="primary">🎙️ Start Live Conversation</button><button id="stop" disabled>⏹ Stop</button></div><div class="meter"><span></span><small id="meterText">Microphone is off</small></div><p class="hint">When connected, speak naturally. You do not need to type. The tutor will listen and reply by voice.</p></section>
+</section>
+<section class="features"><div>🇬🇧 <b>British English</b><small>Pronunciation & rhythm</small></div><div>🗣️ <b>Voice-to-Voice</b><small>Natural conversation</small></div><div>🌲 <b>Forestry English</b><small>Relevant to SMK Kehutanan</small></div><div>📈 <b>Learning Loop</b><small>Listen → Speak → Improve</small></div></section>
+<section class="feedback panel">
+<div class="feedback-head"><div><h2>Speaking feedback</h2><p class="muted">Your conversation is turned into a practical mini-lesson.</p></div><button id="feedbackBtn" class="analyse" disabled>✨ Analyse My Speaking</button></div>
+<div class="transcript"><h3>📝 Your transcript</h3><div class="transcript-box" id="transcriptBox">No learner transcript yet.</div></div>
+<div class="scores"><div><b>Pronunciation</b><strong id="scorePron">—</strong></div><div><b>Fluency</b><strong id="scoreFluency">—</strong></div><div><b>Grammar</b><strong id="scoreGrammar">—</strong></div><div><b>Vocabulary</b><strong id="scoreVocab">—</strong></div></div>
+<p id="feedbackTip">Finish a live session, then analyse your speaking.</p></section>
+</main><footer>RIMBARA AI • SMK Kehutanan Rimba Bahari Sumedang</footer><script src="app-v7.js"></script></body></html>

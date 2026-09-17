@@ -1,0 +1,41 @@
+const $=id=>document.getElementById(id);
+let tutor='Raka', topic='Daily Conversation', slow=false, pc=null, dc=null, micStream=null, audioEl=null, analyser=null, meterTimer=null, connected=false;
+const starters={
+ 'Daily Conversation':'Hi! I\'m {name}. Tell me about your day at school.',
+ 'Forestry English':'Hello! I\'m {name}. Let\'s talk about forestry. What forest activity have you done recently?',
+ 'PKL / Field Practice':'Hi! I\'m {name}. Tell me about your PKL or field practice.',
+ 'Job Interview':'Good morning. I\'m {name}, your interview practice partner. Why are you interested in forestry?'
+};
+function addBubble(text,who='ai'){const d=document.createElement('div');d.className='bubble '+who;d.innerHTML='<b>'+ (who==='ai'?tutor+' 🇬🇧':'YOU')+'</b><p>'+escapeHtml(text)+'</p>';$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function setTutor(name){tutor=name;$('tutorName').textContent=name;$('avatarFace').textContent=name==='Raka'?'👦':'👧';document.querySelectorAll('.char').forEach(x=>x.classList.toggle('active',x.dataset.tutor===name));if(!connected){$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',name));}}
+function setState(s){$('state').textContent=s}
+async function getSecret(){const r=await fetch('/api/realtime/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tutor,topic,slow})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Could not start realtime session');return d.client_secret}
+async function connect(){
+ if(connected)return;
+ try{
+  setState('Requesting secure voice session…');$('connect').disabled=true;
+  const token=await getSecret();
+  micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  pc=new RTCPeerConnection(); audioEl=new Audio(); audioEl.autoplay=true; audioEl.playsInline=true;
+  pc.ontrack=e=>{audioEl.srcObject=e.streams[0]; $('avatarWrap').classList.add('speaking');};
+  pc.onconnectionstatechange=()=>{if(['failed','disconnected','closed'].includes(pc.connectionState)&&connected) stop();};
+  micStream.getTracks().forEach(t=>pc.addTrack(t,micStream));
+  dc=pc.createDataChannel('oai-events');
+  dc.onopen=()=>{dc.send(JSON.stringify({type:'response.create'}));setState('Live — speak naturally');$('stop').disabled=false;connected=true;startMeter();addBubble('Live voice conversation started. I\'m listening.','ai');};
+  dc.onmessage=e=>{try{const ev=JSON.parse(e.data);if(ev.type==='input_audio_buffer.speech_started'){setState('Listening…');$('avatarWrap').classList.remove('speaking')}if(ev.type==='response.audio.delta'){setState(tutor+' is speaking…');$('avatarWrap').classList.add('speaking')}if(ev.type==='response.done'){setState('Live — your turn');$('avatarWrap').classList.remove('speaking')}}catch{}};
+  const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+  const sdp=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/sdp'},body:offer.sdp}).then(async r=>{const t=await r.text();if(!r.ok)throw new Error(t);return t});
+  await pc.setRemoteDescription({type:'answer',sdp});
+ }catch(e){console.error(e);setState('Could not start live voice');$('connect').disabled=false;if(micStream)micStream.getTracks().forEach(t=>t.stop());alert('RIMBARA AI V7: '+e.message+'\n\nPastikan server berjalan, API key sudah diatur, dan browser mengizinkan mikrofon.');}
+}
+function stop(){connected=false;stopMeter();if(dc)dc.close();if(pc)pc.close();if(micStream)micStream.getTracks().forEach(t=>t.stop());pc=null;dc=null;micStream=null;$('connect').disabled=false;$('stop').disabled=true;$('avatarWrap').classList.remove('speaking');setState('Ready');}
+function startMeter(){if(!micStream)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const ctx=new C();analyser=ctx.createAnalyser();const src=ctx.createMediaStreamSource(micStream);analyser.fftSize=256;src.connect(analyser);const data=new Uint8Array(analyser.frequencyBinCount);meterTimer=setInterval(()=>{analyser.getByteTimeDomainData(data);let sum=0;for(const x of data){const v=(x-128)/128;sum+=v*v}const rms=Math.sqrt(sum/data.length);$('meterText').textContent=rms>.025?'Microphone: speaking':'Microphone: ready';document.querySelector('.meter span').style.width=Math.min(100,Math.round(rms*500))+'%';},100)}
+function stopMeter(){if(meterTimer)clearInterval(meterTimer);meterTimer=null;$('meterText').textContent='Microphone is off';$('meter').parentElement.querySelector('span').style.width='0%'}
+
+document.querySelectorAll('.char').forEach(b=>b.onclick=()=>setTutor(b.dataset.tutor));
+$('topic').onchange=e=>{topic=e.target.value;if(!connected){$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',tutor));}};
+$('slow').onclick=()=>{slow=!slow;$('slow').textContent='🐢 Slow: '+(slow?'ON':'OFF');if(connected){alert('Slow mode will apply when the next live session starts.');}};
+$('connect').onclick=connect;$('stop').onclick=stop;
+$('reset').onclick=()=>{stop();$('chat').innerHTML='';addBubble(starters[topic].replace('{name}',tutor));['Pronunciation','Fluency','Grammar','Vocabulary'].forEach((x,i)=>document.querySelectorAll('.scores strong')[i].textContent='—');$('feedbackTip').textContent='After a live session, this area will be used for learner feedback.'};
+window.addEventListener('beforeunload',stop);
