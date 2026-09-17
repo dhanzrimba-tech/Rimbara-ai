@@ -31,7 +31,7 @@ async function createRealtimeCall(sdpOffer){
  const r=await fetch('/api/realtime/call',{
   method:'POST',
   headers:{
-   'Content-Type':'application/sdp',
+   'Content-Type':'text/plain;charset=UTF-8',
    'X-Rimbara-Tutor':tutor,
    'X-Rimbara-Topic':topic,
    'X-Rimbara-Slow':slow?'1':'0'
@@ -46,9 +46,6 @@ async function connect(){
  if(connected)return;
  try{
   resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
-  resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
-
-micStream=await navigator.mediaDevices.getUserMedia({audio:true});
   micStream=await navigator.mediaDevices.getUserMedia({audio:true});
   pc=new RTCPeerConnection(); audioEl=new Audio(); audioEl.autoplay=true; audioEl.playsInline=true;
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0]; $('avatarWrap').classList.add('speaking'); setupOutputMeter(e.streams[0]);};
