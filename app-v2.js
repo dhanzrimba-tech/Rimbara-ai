@@ -22,6 +22,7 @@ let activePhoto='A';
 let speechTimer=null;
 let speechFlip=false;
 let runToken=0;
+let activeAudio=null;
 
 function photoFor(tutor,mode='happy'){
   return expr[tutor][mode]||expr[tutor].happy;
@@ -46,7 +47,7 @@ function setMotion(mode){
 }
 function setState(mode,label){
   state.mode=mode;
-  interactionToken++;
+  runToken++;
   clearInterval(speechTimer);
   speechTimer=null;
   setMotion(mode);
@@ -75,39 +76,63 @@ function updateTutor(){
   document.querySelectorAll('.coach-select').forEach(b=>b.classList.toggle('active',b.dataset.tutor===state.tutor));
   preloadTutor(state.tutor);
 }
-function speak(text){
-  if(!('speechSynthesis' in window)){
-    $('feedback').innerHTML='<b>Demo mode:</b> Browser ini belum mendukung suara tutor.';
-    return;
+function stopDemoAudio(){
+  if(activeAudio){
+    try{activeAudio.pause(); activeAudio.currentTime=0;}catch(e){}
+    activeAudio=null;
   }
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-GB';
-  u.rate=state.slow?.78:.95;
-  u.pitch=state.tutor==='Rara'?1.06:.96;
+}
+function topicKey(topic){
+  return topic.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function demoAudioSrc(tutor,kind){
+  return `assets/audio/${tutor.toLowerCase()}/${topicKey(state.topic)}-${kind}.wav`;
+}
+function speak(text,kind='prompt'){
   const token=++runToken;
-  speechFlip=false;
   clearInterval(speechTimer);speechTimer=null;
+  stopDemoAudio();
+  speechFlip=false;
   setState('speaking',`${state.tutor} is speaking…`);
-  speechSynthesis.cancel();
-  // Gentle frame crossfade creates a visible speech/lip rhythm using the approved character frames.
+
+  // Primary demo voice: bundled local British-English audio, so the demo works
+  // without OpenAI credits and does not depend on browser voice engines.
+  const audio=new Audio(demoAudioSrc(state.tutor,kind));
+  activeAudio=audio;
+  audio.preload='auto';
+  audio.playbackRate=state.slow?.86:1;
+  const finish=()=>{
+    if(token!==runToken)return;
+    clearInterval(speechTimer);speechTimer=null;
+    stopDemoAudio();
+    setState('praise',`${state.tutor} says: Well done!`);
+    setTimeout(()=>{if(token===runToken)setState('happy','Ready for your reply');},900);
+  };
+  audio.onended=finish;
+  audio.onerror=()=>{
+    // Browser speech fallback if a local demo audio asset cannot be played.
+    stopDemoAudio();
+    if(!('speechSynthesis' in window)){
+      $('feedback').innerHTML='<b>Demo mode:</b> Suara belum tersedia di browser ini.';
+      if(token===runToken)setState('happy','Ready for your reply');
+      return;
+    }
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-GB';
+    u.rate=state.slow?.78:.95;
+    u.pitch=state.tutor==='Rara'?1.06:.96;
+    u.onend=finish;
+    u.onerror=()=>{if(token===runToken)setState('happy','Ready for your reply');};
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  };
+  // Gentle frame crossfade creates a visible speaking rhythm.
   speechTimer=setInterval(()=>{
-    if(token!==runToken||!speechSynthesis.speaking){clearInterval(speechTimer);speechTimer=null;return;}
+    if(token!==runToken || audio.ended || audio.paused){clearInterval(speechTimer);speechTimer=null;return;}
     speechFlip=!speechFlip;
     swapCoachPhoto(photoFor(state.tutor,speechFlip?'happy':'speaking'));
   },320);
-  u.onend=()=>{
-    if(token!==runToken)return;
-    clearInterval(speechTimer);speechTimer=null;
-    setState('praise',`${state.tutor} says: Well done!`);
-    setTimeout(()=>{
-      if(token===runToken)setState('happy','Ready for your reply');
-    },900);
-  };
-  u.onerror=()=>{
-    clearInterval(speechTimer);speechTimer=null;
-    if(token===runToken)setState('happy','Ready for your reply');
-  };
-  speechSynthesis.speak(u);
+  audio.play().catch(()=>audio.onerror());
 }
 function addStudent(text){
   if(!text.trim())return;
@@ -129,7 +154,7 @@ function addStudent(text){
       m.innerHTML=`<b>${state.tutor} 🇬🇧</b><p>${reply}</p>`;
       $('conversation').appendChild(m);
       $('feedback').innerHTML=`<b>Demo feedback:</b> Great try! ${state.slow?'Use short, clear sentences first.':'Keep your answer natural and complete.'} 🌱`;
-      speak(reply);
+      speak(reply,'reply');
     },650);
   },650);
 }
@@ -140,7 +165,7 @@ $('scrollFeatures').onclick=()=>$('features').scrollIntoView({behavior:'smooth'}
 $('topic').onchange=e=>{state.topic=e.target.value;updateTutor()};
 document.querySelectorAll('.coach-select').forEach(b=>b.onclick=()=>{state.tutor=b.dataset.tutor;updateTutor()});
 $('slowToggle').onclick=()=>{state.slow=!state.slow;$('slowToggle').textContent=`🐢 Slow: ${state.slow?'ON':'OFF'}`};
-$('hearBtn').onclick=()=>speak(prompts[state.topic].replace('{name}',state.tutor));
+$('hearBtn').onclick=()=>speak(prompts[state.topic].replace('{name}',state.tutor),'prompt');
 $('speakBtn').onclick=()=>{
   if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
     $('studentText').focus();

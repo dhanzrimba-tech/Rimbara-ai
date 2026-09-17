@@ -1,8 +1,9 @@
-# RIMBARA AI V2 — Demo Gratis
+# RIMBARA AI V2.3 — Demo Gratis + Voice Lokal
 
-Versi UI baru berdasarkan blueprint RIMBARA AI: dashboard, Raka/Rara, topic practice room, voice demo memakai Web Speech API browser, ekspresi tutor, dan feedback demo.
+Versi ini memakai audio British-English yang dibundel di folder `assets/audio`, sehingga demo tutor tetap berbicara tanpa OpenAI API atau saldo API.
 
-Tidak memakai OpenAI API. Cocok untuk demo dan penyempurnaan tampilan tanpa biaya API.
-
-## Deploy
-Upload isi folder ini ke root repository GitHub, lalu Vercel akan deploy sebagai static site.
+- Raka dan Rara tetap memakai 5 ekspresi.
+- Tombol **Hear Tutor** memutar audio lokal.
+- Balasan demo juga diputar otomatis setelah siswa mengirim jawaban.
+- Jika audio lokal gagal diputar, aplikasi mencoba `SpeechSynthesis` browser sebagai fallback.
+- Voice input tetap bersifat opsional; browser tanpa SpeechRecognition menggunakan kolom ketik.
