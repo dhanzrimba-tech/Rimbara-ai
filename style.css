@@ -28,3 +28,44 @@
 .expr-card img{height:250px;object-fit:cover;object-position:center center}
 @media(max-width:1150px){.hero-grid{grid-template-columns:1fr}.hero-visual{min-height:500px}.hero-copy{padding-left:0}.hero-character{height:430px}}
 @media(max-width:700px){.hero-visual{min-height:430px;padding:26px 14px 18px;gap:12px}.hero-character{height:350px;width:46%;border-width:5px}.speech-bubble{font-size:12px;padding:9px 10px}.speech-bubble.left{left:10px;top:14px}.speech-bubble.right{right:10px;top:42px}}
+
+
+/* V2.2 character animation system */
+.coach-photo-wrap{isolation:isolate;position:relative;overflow:hidden;}
+.coach-image-stack{position:relative;width:100%;height:100%;z-index:2;display:grid;place-items:end center;}
+.coach-photo{grid-area:1/1;width:100%;height:100%;object-fit:cover;object-position:center center;opacity:0;transform:translateY(8px) scale(.985);transition:opacity .24s ease,transform .24s ease,filter .24s ease;filter:saturate(.94);}
+.coach-photo.visible{opacity:1;transform:translateY(0) scale(1);filter:saturate(1);}
+.motion-ring{position:absolute;width:76%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(10,83,55,.12);box-shadow:0 0 0 10px rgba(20,165,107,.03),0 0 34px rgba(20,165,107,.07);z-index:1;transition:.35s ease;}
+.motion-label{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.94);border:1px solid rgba(10,83,55,.12);color:#0a5337;font-size:10px;font-weight:950;letter-spacing:.1em;box-shadow:0 8px 18px rgba(10,83,55,.10);}
+.thinking-dots{position:absolute;right:14px;top:16px;display:flex;gap:4px;z-index:5;opacity:0;transform:translateY(5px);}
+.thinking-dots i{width:6px;height:6px;border-radius:50%;background:#0a5337;display:block;}
+.applause-stars{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;}
+.applause-stars b{position:absolute;font-size:18px;color:#1ca56d;text-shadow:0 4px 10px rgba(10,83,55,.16);}
+.applause-stars b:nth-child(1){left:16%;top:26%}
+.applause-stars b:nth-child(2){right:16%;top:38%}
+.applause-stars b:nth-child(3){left:28%;top:53%}
+.coach-photo-wrap.listening .motion-ring{animation:listenPulse 1.25s ease-in-out infinite;}
+.coach-photo-wrap.listening .coach-photo.visible{animation:listenFloat 1.25s ease-in-out infinite;}
+.coach-photo-wrap.thinking .motion-ring{transform:scale(.9);opacity:.65;}
+.coach-photo-wrap.thinking .thinking-dots{opacity:1;animation:thinkingLift 1.05s ease-in-out infinite;}
+.coach-photo-wrap.thinking .thinking-dots i{animation:dotBounce .9s ease-in-out infinite;}
+.coach-photo-wrap.thinking .thinking-dots i:nth-child(2){animation-delay:.14s}.coach-photo-wrap.thinking .thinking-dots i:nth-child(3){animation-delay:.28s}
+.coach-photo-wrap.speaking .motion-ring{animation:speakingPulse .42s ease-in-out infinite;}
+.coach-photo-wrap.speaking .coach-photo.visible{animation:speakingFloat .42s ease-in-out infinite;}
+.coach-photo-wrap.praise .motion-ring{animation:praiseRing .7s ease-out 2;}
+.coach-photo-wrap.praise .coach-photo.visible{animation:praiseFloat .48s ease-in-out 2;}
+.coach-photo-wrap.praise .applause-stars{opacity:1;animation:starBurst .7s ease-out 1;}
+
+@keyframes listenPulse{50%{transform:scale(1.06);opacity:.95}}
+@keyframes listenFloat{50%{transform:translateY(-4px) scale(1.015)}}
+@keyframes thinkingLift{50%{transform:translateY(-4px)}}
+@keyframes dotBounce{50%{transform:translateY(-5px);opacity:.55}}
+@keyframes speakingPulse{50%{transform:scale(1.035);box-shadow:0 0 0 14px rgba(20,165,107,.035),0 0 44px rgba(20,165,107,.12)}}
+@keyframes speakingFloat{50%{transform:translateY(-3px) scale(1.018)}}
+@keyframes praiseRing{0%{transform:scale(.92);opacity:.45}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:.7}}
+@keyframes praiseFloat{50%{transform:translateY(-7px) rotate(1deg) scale(1.02)}}
+@keyframes starBurst{0%{opacity:0;transform:scale(.85)}30%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.12)}}
+
+@media(prefers-reduced-motion:reduce){
+  .coach-photo,.motion-ring,.thinking-dots,.thinking-dots i,.applause-stars{animation:none!important;transition:none!important;}
+}

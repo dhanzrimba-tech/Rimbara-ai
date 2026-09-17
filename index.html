@@ -57,7 +57,16 @@
 
       <div class="practice-grid">
         <aside class="coach-card">
-          <div class="coach-photo-wrap" id="coachWrap"><img id="coachPhoto" src="assets/avatars/raka-1.jpg" alt="Tutor"></div>
+          <div class="coach-photo-wrap happy" id="coachWrap" aria-live="polite">
+            <div class="motion-ring" aria-hidden="true"></div>
+            <div class="coach-image-stack">
+              <img id="coachPhotoA" class="coach-photo visible" src="assets/avatars/raka-1.jpg" alt="Raka">
+              <img id="coachPhotoB" class="coach-photo" src="assets/avatars/raka-1.jpg" alt="Raka">
+            </div>
+            <div class="motion-label" id="motionLabel">READY</div>
+            <div class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="applause-stars" aria-hidden="true"><b>★</b><b>★</b><b>★</b></div>
+          </div>
           <div class="coach-name" id="coachName">Raka</div>
           <div class="coach-role">British English Speaking Tutor</div><div class="character-badge" id="characterBadge">READY • Siap belajar</div>
           <div class="coach-buttons">
