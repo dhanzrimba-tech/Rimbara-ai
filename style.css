@@ -69,3 +69,76 @@
 @media(prefers-reduced-motion:reduce){
   .coach-photo,.motion-ring,.thinking-dots,.thinking-dots i,.applause-stars{animation:none!important;transition:none!important;}
 }
+
+
+/* V2.4 Mobile touch + interaction polish */
+html,body{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
+body{min-height:100dvh;}
+button,select,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button{appearance:none;-webkit-appearance:none;}
+.hero-visual .nature-ring,.hero-visual .hero-character,.hero-visual .hero-character img,.hero-visual .speech-bubble{pointer-events:none;}
+.hero-visual,.practice-panel,.coach-card,.conversation-card,.features,.expression-showcase{position:relative;}
+.hero-actions,.coach-buttons,.practice-controls,.text-fallback,.topic-row,.mobile-quicknav{position:relative;z-index:12;}
+.primary,.secondary,.ghost,.coach-select,.text-fallback button,.mobile-quicknav button{position:relative;z-index:13;pointer-events:auto;min-height:44px;}
+select,input{position:relative;z-index:13;pointer-events:auto;min-height:44px;}
+
+.mobile-quicknav{display:none;}
+
+@media (max-width:700px){
+  .topbar{position:sticky;top:0;z-index:100;padding:12px 14px;}
+  .brand{min-width:0;gap:10px;}
+  .brand>div{min-width:0;}
+  .eyebrow{font-size:9px;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  h1{font-size:29px;}
+  .subbrand{font-size:12px;white-space:nowrap;}
+  .hero-grid{gap:18px;padding-top:18px;}
+  .hero-copy h2{font-size:36px;}
+  .hero-copy p{font-size:15px;line-height:1.55;}
+  .hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .hero-actions button{width:100%;padding:13px 10px;}
+  .four-values{gap:8px;}
+  .four-values div{min-height:86px;padding:11px;}
+  .hero-visual{min-height:390px;padding:24px 10px 14px;display:flex;align-items:flex-end;gap:10px;}
+  .hero-character{width:47%;height:325px;}
+  .speech-bubble{max-width:42%;font-size:11px;}
+  .practice-panel{margin:12px;padding:13px;border-radius:22px;}
+  .panel-head{gap:10px;align-items:center;}
+  .panel-head h3,.expression-showcase h3{font-size:25px;}
+  .panel-head .ghost{white-space:nowrap;padding:11px 12px;}
+  .practice-grid{grid-template-columns:1fr;gap:13px;}
+  .coach-card,.conversation-card{padding:14px;}
+  .coach-photo-wrap{height:min(78vw,350px);min-height:280px;}
+  .coach-buttons{gap:8px;}
+  .coach-select{padding:13px 10px;}
+  .topic-row{grid-template-columns:1fr;gap:7px;}
+  .topic-row label{font-size:14px;}
+  .conversation{min-height:220px;padding:14px;}
+  .message{max-width:92%;padding:13px 14px;}
+  .practice-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .practice-controls .big{width:100%;}
+  .text-fallback{display:grid;grid-template-columns:1fr auto;gap:8px;}
+  .text-fallback input{min-width:0;}
+  .text-fallback button{padding:12px 16px;}
+  .features{grid-template-columns:repeat(2,1fr);gap:9px;padding:12px 16px;}
+  .feature{padding:14px 10px;min-height:110px;}
+  .expression-showcase{padding:40px 16px 28px;}
+  .expr-grid{gap:10px;}
+  .expr-grid .expr-card:last-child{grid-column:auto;}
+  .expr-card img{height:220px;}
+  footer{padding:24px 16px 88px;}
+  .mobile-quicknav{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;position:sticky;bottom:max(8px,env(safe-area-inset-bottom));margin:10px 12px 12px;padding:7px;background:rgba(255,255,255,.94);border:1px solid #d8e8dd;border-radius:18px;box-shadow:0 14px 30px rgba(13,54,37,.16);backdrop-filter:blur(12px);z-index:90;}
+  .mobile-quicknav button{border:0;background:transparent;color:#0a5337;font-size:19px;border-radius:13px;padding:8px 3px 7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:900;}
+  .mobile-quicknav button span{font-size:8px;line-height:1;white-space:nowrap;}
+  .mobile-quicknav button:active{background:#e1f2e7;transform:scale(.97);}
+}
+
+@media (max-width:390px){
+  h1{font-size:25px;}
+  .eyebrow{font-size:8px;}
+  .hero-copy h2{font-size:32px;}
+  .hero-actions{grid-template-columns:1fr;}
+  .practice-controls{grid-template-columns:1fr;}
+  .mobile-quicknav{gap:2px;margin-left:8px;margin-right:8px;}
+  .mobile-quicknav button{font-size:17px;padding-left:1px;padding-right:1px;}
+  .mobile-quicknav button span{font-size:7px;}
+}

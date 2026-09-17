@@ -189,3 +189,24 @@ $('studentText').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendText')
 // Preload both tutors so expression changes feel immediate.
 preloadTutor('Raka');preloadTutor('Rara');
 updateTutor();
+
+
+// V2.4 mobile quick navigation: all major menu items are real touch buttons.
+document.querySelectorAll('.mobile-quicknav [data-scroll-target]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const target=$(btn.dataset.scrollTarget);
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+document.querySelectorAll('.mobile-quicknav [data-topic-target]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const topic=btn.dataset.topicTarget;
+    const select=$('topic');
+    if(select){
+      select.value=topic;
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    const practice=$('practice');
+    if(practice) practice.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
