@@ -1,5 +1,19 @@
 import {json,tutorInstructions} from "../../lib/openai.js";
 
+function multipartBody(fields,boundary){
+  const chunks=[];
+  for(const field of fields){
+    chunks.push(Buffer.from(`--${boundary}\r\n`,'utf8'));
+    chunks.push(Buffer.from(`Content-Disposition: form-data; name="${field.name}"\r\n`,'utf8'));
+    if(field.contentType) chunks.push(Buffer.from(`Content-Type: ${field.contentType}\r\n`,'utf8'));
+    chunks.push(Buffer.from('\r\n','utf8'));
+    chunks.push(Buffer.isBuffer(field.value)?field.value:Buffer.from(String(field.value),'utf8'));
+    chunks.push(Buffer.from('\r\n','utf8'));
+  }
+  chunks.push(Buffer.from(`--${boundary}--\r\n`,'utf8'));
+  return Buffer.concat(chunks);
+}
+
 export default async function handler(req,res){
   if(req.method!=="POST") return json(res,405,{error:"Method not allowed"});
 
@@ -7,8 +21,6 @@ export default async function handler(req,res){
   if(!apiKey) return json(res,503,{error:"OPENAI_API_KEY is not configured"});
 
   try{
-    // Browser sends the SDP offer with Content-Type: application/sdp.
-    // Vercel exposes the request body as a string or Buffer depending on runtime.
     let sdp=req.body;
     if(Buffer.isBuffer(sdp)) sdp=sdp.toString("utf8");
     if(typeof sdp!=="string" && sdp && typeof sdp.text==="string") sdp=sdp.text;
@@ -20,6 +32,7 @@ export default async function handler(req,res){
     const topic=req.headers["x-rimbara-topic"]||"Daily Conversation";
     const slow=req.headers["x-rimbara-slow"]==="1";
     const name=tutor==="Rara"?"Rara":"Raka";
+
     const instructions=tutorInstructions(name,topic)
       +` Tutor name is ${name}. ${slow?"Speak noticeably slower than normal and leave clear pauses.":"Use a comfortable natural speaking pace."} Use British English pronunciation and intonation.`;
 
@@ -35,19 +48,24 @@ export default async function handler(req,res){
       }
     };
 
-    // Use the Realtime WebRTC HTTP endpoint directly. This avoids relying on
-    // a specific OpenAI Node SDK version exposing client.realtime.calls.create().
-    const form=new FormData();
-    form.append("sdp",new Blob([sdp],{type:"application/sdp"}),"offer.sdp");
-    form.append("session",new Blob([JSON.stringify(session)],{type:"application/json"}),"session.json");
+    // OpenAI's /v1/realtime/calls endpoint expects multipart/form-data with
+    // an SDP text field (content type application/sdp) and an optional session
+    // JSON field. Build the multipart payload explicitly so the SDP is a
+    // normal form field, not a file upload with a filename.
+    const boundary=`----RimbaraBoundary${Date.now()}${Math.random().toString(16).slice(2)}`;
+    const body=multipartBody([
+      {name:"sdp",contentType:"application/sdp",value:sdp},
+      {name:"session",contentType:"application/json",value:JSON.stringify(session)}
+    ],boundary);
 
     const response=await fetch("https://api.openai.com/v1/realtime/calls",{
       method:"POST",
       headers:{
         Authorization:`Bearer ${apiKey}`,
-        Accept:"application/sdp"
+        Accept:"application/sdp",
+        "Content-Type":`multipart/form-data; boundary=${boundary}`
       },
-      body:form
+      body
     });
 
     const answer=await response.text();
