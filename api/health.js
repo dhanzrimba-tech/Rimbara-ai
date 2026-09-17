@@ -1,0 +1,1 @@
+import {getOpenAI,json} from "../lib/openai.js"; export default function handler(req,res){json(res,200,{ok:true,configured:Boolean(getOpenAI()),realtimeModel:process.env.OPENAI_REALTIME_MODEL||"gpt-realtime-2.1"});}

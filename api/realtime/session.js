@@ -1,0 +1,1 @@
+import {getOpenAI,json} from "../../lib/openai.js";export default function handler(req,res){json(res,200,{ok:Boolean(getOpenAI()),message:"V8.3 uses server-side Realtime WebRTC call creation."});}
