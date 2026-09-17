@@ -47,7 +47,7 @@ async function connect(){
  try{
   resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
   resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
-const token=await getSecret();
+
 micStream=await navigator.mediaDevices.getUserMedia({audio:true});
   micStream=await navigator.mediaDevices.getUserMedia({audio:true});
   pc=new RTCPeerConnection(); audioEl=new Audio(); audioEl.autoplay=true; audioEl.playsInline=true;
