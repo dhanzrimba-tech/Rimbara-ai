@@ -46,7 +46,9 @@ async function connect(){
  if(connected)return;
  try{
   resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
-  const token=await getSecret();
+  resetFeedback(); setState('Requesting secure voice session…');$('connect').disabled=true;
+const token=await getSecret();
+micStream=await navigator.mediaDevices.getUserMedia({audio:true});
   micStream=await navigator.mediaDevices.getUserMedia({audio:true});
   pc=new RTCPeerConnection(); audioEl=new Audio(); audioEl.autoplay=true; audioEl.playsInline=true;
   pc.ontrack=e=>{audioEl.srcObject=e.streams[0]; $('avatarWrap').classList.add('speaking'); setupOutputMeter(e.streams[0]);};
